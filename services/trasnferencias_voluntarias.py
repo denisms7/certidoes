@@ -370,37 +370,39 @@ def gerar_certidao_transferencia_voluntaria(
 
         time.sleep(5)
 
+
+
         # ─────────────────────────────────────
-        # DOWNLOAD PDF
+        # SALVAR POPUP COMO PDF
         # ─────────────────────────────────────
 
-        print("📥 Aguardando download PDF...")
+        print("🖨 Gerando PDF da certidão...")
 
-        arquivo_baixado = aguardar_download(
-            pasta_temp,
-            timeout=60
+        import base64
+
+        # aguarda renderizar completamente
+        time.sleep(3)
+
+        resultado = driver.execute_cdp_cmd(
+            "Page.printToPDF",
+            {
+                "landscape": False,
+                "printBackground": True,
+                "preferCSSPageSize": True
+            }
         )
 
-        if not arquivo_baixado:
+        pdf_data = base64.b64decode(resultado['data'])
 
-            raise FileNotFoundError(
-                "PDF não foi baixado."
-            )
-
-        # REMOVE ARQUIVO ANTIGO
+        # remove arquivo antigo
         if os.path.exists(caminho_final):
-
             os.remove(caminho_final)
 
-        shutil.move(
-            arquivo_baixado,
-            caminho_final
-        )
+        with open(caminho_final, "wb") as arquivo:
+            arquivo.write(pdf_data)
 
-        print("\n✅ CERTIDÃO GERADA COM SUCESSO")
-        print(f"📄 Arquivo : {caminho_final}")
+        print("✔ PDF salvo com sucesso.")
 
-        return caminho_final
 
     except TimeoutException:
 
