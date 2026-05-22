@@ -13,13 +13,16 @@ CNPJ = "75845503000167"
 # ─────────────────────────────────────────────
 # EXECUÇÃO
 # ─────────────────────────────────────────────
+
+
 #gerar_cnd_federal(CNPJ)
 
 
+if True == True:
+    gerar_certidao_transferencia_voluntaria(CNPJ)
+    gerar_liberatoria_tce(CNPJ)
+    gerar_crf_fgts(CNPJ)
+    gerar_certidao_fazenda_pr(CNPJ)
 
-'''
-gerar_certidao_transferencia_voluntaria(CNPJ)
-gerar_liberatoria_tce(CNPJ)
-gerar_crf_fgts(CNPJ)
-gerar_certidao_fazenda_pr(CNPJ)
-'''
+else:
+    pass
