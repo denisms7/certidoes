@@ -32,7 +32,6 @@ from dotenv import load_dotenv
 
 import os
 import time
-import base64
 import random
 
 
@@ -114,7 +113,21 @@ def configurar_chrome() -> webdriver.Chrome:
         False
     )
 
-    # User agent real
+    # Download automático
+    prefs = {
+        "download.default_directory": PASTA_DOWNLOAD,
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "plugins.always_open_pdf_externally": True,
+        "profile.default_content_settings.popups": 0,
+    }
+
+    opcoes.add_experimental_option(
+        "prefs",
+        prefs
+    )
+
+    # User Agent real
     opcoes.add_argument(
         "--user-agent=Mozilla/5.0 "
         "(Windows NT 10.0; Win64; x64) "
@@ -135,7 +148,7 @@ def configurar_chrome() -> webdriver.Chrome:
         options=opcoes
     )
 
-    # Remove webdriver flag
+    # Remove flag webdriver
     driver.execute_script("""
     Object.defineProperty(
         navigator,
@@ -190,45 +203,84 @@ def digitar_humano(
 
 
 # ─────────────────────────────────────────────
-# PDF
+# AGUARDA DOWNLOAD
 # ─────────────────────────────────────────────
 
-def salvar_pdf(
-    driver: webdriver.Chrome,
-    caminho_pdf: str
-) -> None:
+def aguardar_download_pdf(
+    caminho_pdf: str,
+    timeout: int = 60
+) -> str:
     """
-    Salva página atual em PDF.
+    Aguarda download do PDF.
     """
 
-    print("\n🖨 Gerando PDF...")
+    print("\n⏳ Aguardando download...")
 
-    pdf = driver.execute_cdp_cmd(
-        "Page.printToPDF",
-        {
-            "printBackground": True,
-            "landscape": False,
-            "paperWidth": 8.27,
-            "paperHeight": 11.69,
-            "marginTop": 0.2,
-            "marginBottom": 0.2,
-            "marginLeft": 0.2,
-            "marginRight": 0.2,
-        }
+    tempo_limite = (
+        time.time() + timeout
     )
 
-    with open(
-        caminho_pdf,
-        "wb"
-    ) as arquivo:
+    while time.time() < tempo_limite:
 
-        arquivo.write(
-            base64.b64decode(
-                pdf["data"]
+        arquivos = [
+            os.path.join(
+                PASTA_DOWNLOAD,
+                arquivo
             )
-        )
+            for arquivo in os.listdir(
+                PASTA_DOWNLOAD
+            )
+        ]
 
-    print("✔ PDF salvo com sucesso.")
+        arquivos_pdf = [
+            arquivo
+            for arquivo in arquivos
+            if arquivo.lower().endswith(".pdf")
+        ]
+
+        if arquivos_pdf:
+
+            arquivo_recente = max(
+                arquivos_pdf,
+                key=os.path.getctime
+            )
+
+            # garante que terminou download
+            if not os.path.exists(
+                arquivo_recente + ".crdownload"
+            ):
+
+                # remove arquivo antigo
+                if os.path.exists(
+                    caminho_pdf
+                ):
+                    os.remove(
+                        caminho_pdf
+                    )
+
+                # renomeia
+                if os.path.abspath(
+                    arquivo_recente
+                ) != os.path.abspath(
+                    caminho_pdf
+                ):
+
+                    os.rename(
+                        arquivo_recente,
+                        caminho_pdf
+                    )
+
+                print(
+                    "✔ Download concluído."
+                )
+
+                return caminho_pdf
+
+        time.sleep(1)
+
+    raise TimeoutException(
+        "Tempo excedido aguardando PDF."
+    )
 
 
 # ─────────────────────────────────────────────
@@ -348,8 +400,10 @@ def gerar_certidao_fazenda_pr(
             EC.element_to_be_clickable(
                 (
                     By.XPATH,
-                    "//span[contains(text(),"
-                    "'Solicitar nova certidão')]"
+                    "//span[contains("
+                    "text(),"
+                    "'Solicitar nova certidão'"
+                    ")]"
                 )
             )
         )
@@ -365,7 +419,7 @@ def gerar_certidao_fazenda_pr(
         # 5. BAIXAR PDF
         # ─────────────────────────────────────
 
-        print("[5/5] Abrindo PDF...")
+        print("[5/5] Baixando PDF...")
 
         botao_pdf = wait.until(
             EC.element_to_be_clickable(
@@ -381,28 +435,11 @@ def gerar_certidao_fazenda_pr(
             botao_pdf
         )
 
-        esperar(5, 8)
-
         # ─────────────────────────────────────
-        # NOVA ABA
+        # AGUARDA DOWNLOAD
         # ─────────────────────────────────────
 
-        abas = driver.window_handles
-
-        if len(abas) > 1:
-
-            driver.switch_to.window(
-                abas[-1]
-            )
-
-            esperar(3, 5)
-
-        # ─────────────────────────────────────
-        # SALVA PDF
-        # ─────────────────────────────────────
-
-        salvar_pdf(
-            driver,
+        aguardar_download_pdf(
             caminho_pdf
         )
 

@@ -15,7 +15,7 @@ CNPJ = "75845503000167"
 # ─────────────────────────────────────────────
 
 # gerar_cnd_federal(CNPJ)
-# gerar_liberatoria_tce(CNPJ)
-# gerar_crf_fgts(CNPJ)
 
+gerar_liberatoria_tce(CNPJ)
+gerar_crf_fgts(CNPJ)
 gerar_certidao_fazenda_pr(CNPJ)
