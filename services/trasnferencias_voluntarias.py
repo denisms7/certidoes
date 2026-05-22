@@ -28,6 +28,7 @@ from dotenv import load_dotenv
 import os
 import time
 import shutil
+import base64
 
 
 load_dotenv()
@@ -106,49 +107,6 @@ def configurar_chrome() -> webdriver.Chrome:
 
     return driver
 
-# ─────────────────────────────────────────────
-# DOWNLOAD
-# ─────────────────────────────────────────────
-
-def aguardar_download(
-    pasta: str,
-    timeout: int = 60
-) -> str | None:
-    """
-    Aguarda download do PDF.
-    """
-
-    tempo_inicial = time.time()
-
-    while time.time() - tempo_inicial < timeout:
-
-        arquivos_pdf = [
-            f for f in os.listdir(pasta)
-            if f.lower().endswith(".pdf")
-        ]
-
-        arquivos_temp = [
-            f for f in os.listdir(pasta)
-            if f.endswith(".crdownload")
-        ]
-
-        if arquivos_pdf and not arquivos_temp:
-
-            arquivos_pdf.sort(
-                key=lambda x: os.path.getmtime(
-                    os.path.join(pasta, x)
-                ),
-                reverse=True
-            )
-
-            return os.path.join(
-                pasta,
-                arquivos_pdf[0]
-            )
-
-        time.sleep(1)
-
-    return None
 
 # ─────────────────────────────────────────────
 # FUNÇÃO PRINCIPAL
@@ -368,20 +326,14 @@ def gerar_certidao_transferencia_voluntaria(
 
         print("✔ Popup aberto.")
 
+        # aguarda renderização completa
         time.sleep(5)
-
-
 
         # ─────────────────────────────────────
         # SALVAR POPUP COMO PDF
         # ─────────────────────────────────────
 
         print("🖨 Gerando PDF da certidão...")
-
-        import base64
-
-        # aguarda renderizar completamente
-        time.sleep(3)
 
         resultado = driver.execute_cdp_cmd(
             "Page.printToPDF",
@@ -392,17 +344,25 @@ def gerar_certidao_transferencia_voluntaria(
             }
         )
 
-        pdf_data = base64.b64decode(resultado['data'])
+        pdf_data = base64.b64decode(
+            resultado["data"]
+        )
 
         # remove arquivo antigo
         if os.path.exists(caminho_final):
+
             os.remove(caminho_final)
 
         with open(caminho_final, "wb") as arquivo:
+
             arquivo.write(pdf_data)
 
         print("✔ PDF salvo com sucesso.")
 
+        print("\n✅ CERTIDÃO GERADA COM SUCESSO")
+        print(f"📄 Arquivo : {caminho_final}")
+
+        return caminho_final
 
     except TimeoutException:
 
@@ -430,7 +390,23 @@ def gerar_certidao_transferencia_voluntaria(
 
         driver.quit()
 
+        # REMOVE PASTA TEMPORÁRIA
+        if os.path.exists(pasta_temp):
+
+            try:
+
+                shutil.rmtree(pasta_temp)
+
+                print("🗑 Pasta temporária removida.")
+
+            except Exception as erro:
+
+                print(
+                    f"⚠ Não foi possível remover pasta temporária: {erro}"
+                )
+
         print("\n🛑 Navegador encerrado.")
+
 
 # ─────────────────────────────────────────────
 # ALIAS
