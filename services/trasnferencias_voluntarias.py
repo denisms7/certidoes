@@ -1,14 +1,3 @@
-"""
-Script: certidao_transferencia_voluntaria_pr.py
-
-Descrição:
-    Emite automaticamente a Certidão para
-    Transferência Voluntária do Estado do Paraná.
-
-Prefeitura Municipal de Centenário do Sul
-Setor de Informática
-"""
-
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By

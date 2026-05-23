@@ -1,14 +1,3 @@
-"""
-Script: fgts_crf.py
-
-Descrição:
-    Gera automaticamente o Certificado de
-    Regularidade do FGTS (CRF) da Caixa.
-
-Prefeitura Municipal de Centenário do Sul
-Setor de Informática
-"""
-
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By

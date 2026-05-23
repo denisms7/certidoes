@@ -1,14 +1,3 @@
-"""
-Script: certidao_fazenda_pr.py
-
-Descrição:
-    Gera automaticamente a Certidão
-    da Fazenda do Paraná.
-
-Prefeitura Municipal de Centenário do Sul
-Setor de Informática
-"""
-
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
