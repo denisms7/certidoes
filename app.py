@@ -11,16 +11,11 @@ os.makedirs(PASTA_CERTIDOES, exist_ok=True)
 
 CNPJ = "75845503000167"
 
+
 # ─────────────────────────────────────────────
 # EXECUÇÃO
 # ─────────────────────────────────────────────
-
-
-#gerar_cnd_federal(CNPJ)
-
-
 if True == True:
-
     cnpj_75845503000167()
     gerar_certidao_transferencia_voluntaria(CNPJ)
     gerar_liberatoria_tce(CNPJ)
@@ -28,4 +23,6 @@ if True == True:
     gerar_certidao_fazenda_pr(CNPJ)
 
 else:
+    gerar_cnd_federal(CNPJ)
+    #  CNDT
     pass
